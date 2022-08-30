@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { ON_WEBSOCKET_MESSAGE } from './../sagas/prices/prices.actions';
 
 export const pricesSlice = createSlice({
   name: 'prices',
@@ -6,8 +7,10 @@ export const pricesSlice = createSlice({
     value: 0,
   },
   reducers: {
-    increment: state => {
-      state.value += 1;
+    // dummy actions
+    [ON_WEBSOCKET_MESSAGE]: (state, action) => {
+      console.log('on websocket message on reducer', action);
+      return state;
     },
     decrement: state => {
       state.value -= 1;
@@ -19,6 +22,6 @@ export const pricesSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { increment, decrement, incrementByAmount } = pricesSlice.actions;
+export const { decrement, incrementByAmount } = pricesSlice.actions;
 
 export default pricesSlice.reducer;
