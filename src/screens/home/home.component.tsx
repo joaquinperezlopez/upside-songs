@@ -1,14 +1,17 @@
-import { useNavigation } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { Text, TouchableHighlight, View } from 'react-native';
-import routes from '../../navigation/routes';
+import routes, { StackParamList } from '../../navigation/routes';
 import styles from './home.styles';
 
-const HomeScreen = () => {
-  const navigator = useNavigation();
+type HomeScreenProps = {} & NativeStackScreenProps<
+  StackParamList,
+  typeof routes.Prices
+>;
 
+const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const _onPressConnect = () => {
-    navigator.navigate(routes.Prices);
+    navigation.navigate(routes.Prices);
   };
 
   return (

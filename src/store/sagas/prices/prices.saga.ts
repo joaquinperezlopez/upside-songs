@@ -22,7 +22,7 @@ function* createWebsocketChannel() {
     }
     return eventChannel<WebSocketEvent>(emit => {
       ws.addEventListener('message', (event: WebSocketMessageEvent) => {
-        console.log('message: ', event.data);
+        console.log('message: ', event);
         const message: WebSocketEvent = JSON.parse(event.data);
         emit(message);
       });
