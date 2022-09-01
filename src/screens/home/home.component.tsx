@@ -16,6 +16,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Upside Exchange</Text>
       <TouchableHighlight onPress={_onPressConnect} style={styles.button}>
         <Text style={styles.textButton}>Connect</Text>
       </TouchableHighlight>

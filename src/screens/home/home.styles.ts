@@ -10,6 +10,11 @@ export default StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 32,
+  },
   button: {
     padding: 16,
     borderRadius: 4,

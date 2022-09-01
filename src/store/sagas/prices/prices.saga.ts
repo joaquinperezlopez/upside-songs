@@ -1,8 +1,9 @@
 import { showMessage } from 'react-native-flash-message';
-import { EventChannel, eventChannel } from 'redux-saga';
+import { END, EventChannel, eventChannel } from 'redux-saga';
 import { call, put, take, takeLatest } from 'redux-saga/effects';
-import { CONNECT_WEBSOCKET } from './prices.actions';
-import { connectWebsocket } from './prices.services';
+import { savePrices } from '../../prices/prices.reducer';
+import { CONNECT_WEBSOCKET, DISCONNECT_WEBSOCKET } from './prices.actions';
+import { createWebSocket } from './prices.services';
 
 type WebSocketEvent = {
   type: string;
@@ -11,29 +12,43 @@ type WebSocketEvent = {
 
 function* createWebsocketChannel() {
   try {
-    const ws: WebSocket = yield call(connectWebsocket);
-    if (ws.readyState === WebSocket.OPEN) {
-      showMessage({
-        message: 'Websocket connected',
-        type: 'success',
-        icon: 'success',
-        floating: true,
-      });
-    }
     return eventChannel<WebSocketEvent>(emit => {
-      ws.addEventListener('message', (event: WebSocketMessageEvent) => {
-        console.log('message: ', event);
-        const message: WebSocketEvent = JSON.parse(event.data);
-        emit(message);
-      });
+      const ws = createWebSocket();
 
-      ws.addEventListener('error', (event: WebSocketErrorEvent) => {
-        console.log('error: ', event);
-      });
+      ws.onopen = () => {
+        showMessage({
+          message: 'Connected to websocket',
+          type: 'success',
+          icon: 'success',
+          floating: true,
+        });
+      };
 
-      ws.addEventListener('close', (event: WebSocketCloseEvent) => {
-        console.log('close: ', JSON.stringify(event, null, 2));
-      });
+      ws.onclose = () => {
+        showMessage({
+          message: 'Disconnected from websocket',
+          type: 'danger',
+          icon: 'danger',
+          floating: true,
+        });
+        emit(END);
+      };
+
+      ws.onerror = (_: WebSocketErrorEvent) => {
+        // report error to crashlytics or whatever
+        // console.log('error', error);
+        showMessage({
+          message: 'Error connecting to websocket',
+          type: 'danger',
+          icon: 'danger',
+          floating: true,
+        });
+        emit(END);
+      };
+
+      ws.onmessage = (msg: WebSocketMessageEvent) => {
+        emit(JSON.parse(msg.data));
+      };
 
       return ws.close;
     });
@@ -47,11 +62,17 @@ function* handleConnectWebsocket() {
     const wsChannel: EventChannel<WebSocketEvent> = yield call(
       createWebsocketChannel,
     );
-    while (true) {
-      const action: WebSocketEvent = yield take(wsChannel);
-      console.log('websocket action:', action);
-      yield put(action);
-    }
+    yield takeLatest(wsChannel, function* (message) {
+      yield put(savePrices(message));
+    });
+    yield take(DISCONNECT_WEBSOCKET);
+    showMessage({
+      message: 'Disconnected from websocket',
+      type: 'danger',
+      icon: 'danger',
+      floating: true,
+    });
+    wsChannel.close();
   } catch (error) {
     console.log('error', error);
   }
